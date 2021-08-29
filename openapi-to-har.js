@@ -396,76 +396,78 @@ const getHeadersArray = function (openApi, path, method) {
   let oauthDef;
   if (typeof pathObj.security !== 'undefined') {
     for (var l in pathObj.security) {
-      const secScheme = Object.keys(pathObj.security[l])[0];
-      const secDefinition = openApi.securityDefinitions
-        ? openApi.securityDefinitions[secScheme]
-        : openApi.components.securitySchemes[secScheme];
-      const authType = secDefinition.type.toLowerCase();
-      let authScheme = null;
+      Object.keys(pathObj.security[l]).forEach( secScheme => {
+        const secDefinition = openApi.securityDefinitions
+          ? openApi.securityDefinitions[secScheme]
+          : openApi.components.securitySchemes[secScheme];
+        const authType = secDefinition.type.toLowerCase();
+        let authScheme = null;
 
-      if (authType !== 'apikey' && secDefinition.scheme != null) {
-        authScheme = secDefinition.scheme.toLowerCase();
-      }
+        if (authType !== 'apikey' && secDefinition.scheme != null) {
+          authScheme = secDefinition.scheme.toLowerCase();
+        }
 
-      switch (authType) {
-        case 'basic':
-          basicAuthDef = secScheme;
-          break;
-        case 'apikey':
-          if (secDefinition.in === 'header') {
-            apiKeyAuthDef.push(secDefinition);
-          }
-          break;
-        case 'oauth2':
-          oauthDef = secScheme;
-          break;
-        case 'http':
-          switch (authScheme) {
-            case 'bearer':
-              oauthDef = secScheme;
-              break;
-            case 'basic':
-              basicAuthDef = secScheme;
-              break;
-          }
-          break;
-      }
+        switch (authType) {
+          case 'basic':
+            basicAuthDef = secScheme;
+            break;
+          case 'apikey':
+            if (secDefinition.in === 'header') {
+              apiKeyAuthDef.push(secDefinition);
+            }
+            break;
+          case 'oauth2':
+            oauthDef = secScheme;
+            break;
+          case 'http':
+            switch (authScheme) {
+              case 'bearer':
+                oauthDef = secScheme;
+                break;
+              case 'basic':
+                basicAuthDef = secScheme;
+                break;
+            }
+            break;
+        }
+      })
     }
   } else if (typeof openApi.security !== 'undefined') {
     // Need to check OAS 3.0 spec about type http and scheme
     for (let m in openApi.security) {
-      const secScheme = Object.keys(openApi.security[m])[0];
-      const secDefinition = openApi.components.securitySchemes[secScheme];
-      const authType = secDefinition.type.toLowerCase();
-      let authScheme = null;
+      Object.keys(openApi.security[m]).forEach( secScheme => {
+        const secDefinition = openApi.components.securitySchemes[secScheme];
+        const authType = secDefinition.type.toLowerCase();
+        let authScheme = null;
 
-      if (authType !== 'apikey' && authType !== 'oauth2') {
-        authScheme = secDefinition.scheme.toLowerCase();
-      }
+        if (authType !== 'apikey' && authType !== 'oauth2') {
+          authScheme = secDefinition.scheme.toLowerCase();
+        }
 
-      switch (authType) {
-        case 'http':
-          switch (authScheme) {
-            case 'bearer':
-              oauthDef = secScheme;
-              break;
-            case 'basic':
-              basicAuthDef = secScheme;
-              break;
-          }
-          break;
-        case 'basic':
-          basicAuthDef = secScheme;
-          break;
-        case 'apikey':
-          if (secDefinition.in === 'header') {
-            apiKeyAuthDef.push(secDefinition);
-          }
-          break;
-        case 'oauth2':
-          oauthDef = secScheme;
-          break;
-      }
+        switch (authType) {
+          case 'http':
+            switch (authScheme) {
+              case 'bearer':
+                oauthDef = secScheme;
+                break;
+              case 'basic':
+                basicAuthDef = secScheme;
+                break;
+            }
+            break;
+          case 'basic':
+            basicAuthDef = secScheme;
+            break;
+          case 'apikey':
+            if (secDefinition.in === 'header') {
+              apiKeyAuthDef.push(secDefinition);
+            }
+            break;
+          case 'oauth2':
+            oauthDef = secScheme;
+            break;
+        }
+      })
     }
   }
 
@@ -478,7 +480,7 @@ const getHeadersArray = function (openApi, path, method) {
     apiKeyAuthDef.forEach( keyAuthDef => {
       headers.push({
         name: keyAuthDef.name,
-        value: `{{${keyAuthDef.toUpperCase()}}}`,
+        value: 'REPLACE_KEY_VALUE'
       });
     })
   } else if (oauthDef) {
@@ -487,7 +489,6 @@ const getHeadersArray = function (openApi, path, method) {
       value: 'Bearer ' + 'REPLACE_BEARER_TOKEN',
     });
   }
-
   return headers;
 };
 
