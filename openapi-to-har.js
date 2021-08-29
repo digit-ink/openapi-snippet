@@ -392,7 +392,7 @@ const getHeadersArray = function (openApi, path, method) {
 
   // security:
   let basicAuthDef;
-  let apiKeyAuthDef;
+  let apiKeyAuthDef = [];
   let oauthDef;
   if (typeof pathObj.security !== 'undefined') {
     for (var l in pathObj.security) {
@@ -413,7 +413,7 @@ const getHeadersArray = function (openApi, path, method) {
           break;
         case 'apikey':
           if (secDefinition.in === 'header') {
-            apiKeyAuthDef = secDefinition;
+            apiKeyAuthDef.push(secDefinition);
           }
           break;
         case 'oauth2':
@@ -459,7 +459,7 @@ const getHeadersArray = function (openApi, path, method) {
           break;
         case 'apikey':
           if (secDefinition.in === 'header') {
-            apiKeyAuthDef = secDefinition;
+            apiKeyAuthDef.push(secDefinition);
           }
           break;
         case 'oauth2':
@@ -474,11 +474,13 @@ const getHeadersArray = function (openApi, path, method) {
       name: 'Authorization',
       value: 'Basic ' + 'REPLACE_BASIC_AUTH',
     });
-  } else if (apiKeyAuthDef) {
-    headers.push({
-      name: apiKeyAuthDef.name,
-      value: 'REPLACE_KEY_VALUE',
-    });
+  } else if (apiKeyAuthDef.length) {
+    apiKeyAuthDef.forEach( keyAuthDef => {
+      headers.push({
+        name: keyAuthDef.name,
+        value: `{{${keyAuthDef.toUpperCase()}}}`,
+      });
+    })
   } else if (oauthDef) {
     headers.push({
       name: 'Authorization',
